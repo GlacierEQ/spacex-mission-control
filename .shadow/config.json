@@ -1,0 +1,11 @@
+{
+  "project": "spacex-mission-control",
+  "version": "1.0.0",
+  "architecture": "double-helix",
+  "alpha": "telemetry_aggregator.py",
+  "omega": "mission_orchestrator.py",
+  "stealth_sigil": "MSC-SIGIL-0xCTRL",
+  "shadow_memory": true,
+  "watchdog_daemon": true,
+  "integrity_check": "sha256"
+}

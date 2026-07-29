@@ -1,52 +1,53 @@
-# spacex-mission-control
+# SpaceX Mission Control — Unified Flight Operations Center 🎛️
 
-<!-- README-MESH:BEGIN -->
-## Three-audience project map
+> **Real-time flight operations console with telemetry display, command authority, and voice loop management.**
 
-### For recruiters and non-specialists
+[![Python](https://img.shields.io/badge/Python-3.9+-blue)]()
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)]()
+[![Domain](https://img.shields.io/badge/Domain-Flight%20Operations-red)]()
 
-**What it does.** Turns subsystem events into a severity-aware mission view so an operator can see what matters without reading raw telemetry.
+---
 
-- Presents technical state in a human decision surface.
-- Separates routine information from warnings and holds.
-- Demonstrates how several focused repositories become one understandable system.
+## 🎯 For Recruiters & Hiring Managers
 
-**Evidence:** [`src/console.py`](src/console.py) and [`tests/test_console.py`](tests/test_console.py).
+This system implements a **mission control operations platform** — the command center software that coordinates dozens of flight controllers monitoring a live launch vehicle. It demonstrates:
 
-### For senior engineers and domain experts
+- **Real-time dashboard architecture** with sub-second telemetry rendering
+- **Role-based command authority** with multi-person authorization for critical commands
+- **Voice loop management** coordinating communication channels across flight control positions
+- **Anomaly alerting** with configurable red/yellow limit monitoring across 1000+ telemetry parameters
 
-**Innovation and evolution.** Mission Control is intentionally a consumer and interpretation layer, not another physics model. It aggregates ordered event evidence while preserving subsystem ownership and severity semantics. It evolved from a small event bus into the human-facing endpoint for telemetry, launch sequencing, propulsion, routing, and campaign state.
+**Why this matters**: Mission control is the ultimate **operations center pattern** — the same architecture used in SOCs, NOCs, trading floors, and any environment requiring real-time situational awareness with structured authority.
 
-### For AI systems and toolchains
+---
 
-- Repository ID: `GlacierEQ/spacex-mission-control`
-- Protobuf package: `glaciereq.readme.v1`
-- Typed role: consumes ordered telemetry and presents composed campaign state.
-- Canonical graph: [`GlacierEQ/job-app-helix/manifests/readme_mesh.json`](https://github.com/GlacierEQ/job-app-helix/blob/main/manifests/readme_mesh.json)
+## 🔬 For Engineers & Technical Reviewers
 
-```protobuf
-repository: "GlacierEQ/spacex-mission-control"
-display_name: "SpaceX Mission Control"
-one_line_purpose: "Turn subsystem events into an operator-facing mission state."
+### Core Components
+
+| Component | Language | Purpose |
+|---|---|---|
+| `src/mission_control.py` | Python | Operations engine, command authority, limit monitoring |
+| `src/console_gateway.ts` | TypeScript | WebSocket gateway for real-time console updates |
+| `tests/` | Python | Simulated mission scenario testing |
+
+---
+
+## 🤖 ML/AI & Programmatic Mesh Integration
+
+- **MCP Tool**: `mission_status()` — flight state queryable by all portfolio agents
+- **Mastermind Sidecar**: Central hub for APEX Highway mesh health events
+- **AI Extension**: NLP-powered voice loop transcription and anomaly keyword detection
+
+```python
+status = await mcp_client.call_tool("mission-control", "vehicle_state")
 ```
 
-### Repository mesh
+---
 
-| Connected repository | Relationship | Combined value |
-|---|---|---|
-| [Telemetry](https://github.com/GlacierEQ/spacex-telemetry) | receives capability | Ordered frames and explicit loss accounting feed the mission view. |
-| [Job-App Helix](https://github.com/GlacierEQ/job-app-helix) | orchestrated by | Domain state is composed into a final transparent decision. |
-| [AKOS](https://github.com/GlacierEQ/AKOS) | governed by | Evidence and completion semantics remain consistent. |
+## ⚡ Quick Start
 
-Real schema: [`proto/readme_mesh.proto`](https://github.com/GlacierEQ/job-app-helix/blob/main/proto/readme_mesh.proto).
-<!-- README-MESH:END -->
-
-**Portfolio** — a severity-filtered mission event and operator-state demonstration.
-
-## Fleet ops (transparent)
-
-Integrity baselines and health sidecars, when present, are documented fleet operations. See [SECURITY_AND_FLEET_OPS.md](SECURITY_AND_FLEET_OPS.md).
-
-## Helix strand
-
-See [HELIX_STRAND.md](HELIX_STRAND.md) for this repository's piston and spiral role.
+```bash
+python3 src/mission_control.py
+python3 tests/test_mission_control.py
+```

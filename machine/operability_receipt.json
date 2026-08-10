@@ -1,0 +1,31 @@
+{
+  "schema": "glaciereq.operability-receipt.v1",
+  "repository": "GlacierEQ/spacex-mission-control",
+  "at": "2026-08-10T04:12Z",
+  "source_sha": "3bebe10e4f6b2024c43d6d0e9cc19cd2aba434498ef205c478589db15496e7c3",
+  "entry": "scripts/operate.py",
+  "primary_output": {
+    "module": "console",
+    "ok": true,
+    "repository": "GlacierEQ/spacex-mission-control",
+    "smoke": {
+      "args": [
+        "Event(source='sample_source', severity=1"
+      ],
+      "content_checked": true,
+      "invoked": true,
+      "kind": "class",
+      "method": "publish",
+      "module_local": true,
+      "name": "Bus",
+      "result": {
+        "delivered": [],
+        "severity": 1,
+        "source": "sample_source",
+        "undelivered": []
+      }
+    }
+  },
+  "dual_run_ok": true,
+  "result": "PASS"
+}

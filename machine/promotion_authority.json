@@ -1,0 +1,11 @@
+{
+  "schema": "glaciereq.promotion-authority-grant.v1",
+  "repository": "GlacierEQ/spacex-mission-control",
+  "source_sha": "3bebe10e4f6b2024c43d6d0e9cc19cd2aba434498ef205c478589db15496e7c3",
+  "proof_receipt_digest": "b71297146f529b736d2d6be01088fb3f1e2e135dc3530f99d1eee64f05526fd5",
+  "not_after": 1788927149.234226,
+  "mac": "1ad3d5ae2491d999f9c92ea99d3d999321ed586b77794f6a7f1c0bcf733483e5",
+  "issuer": "local_operator_promotion_authority",
+  "verified": true,
+  "secret_ref": "src/promotion_authority.py::LOCAL_OPERATOR_SECRET"
+}

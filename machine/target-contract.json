@@ -2,21 +2,26 @@
   "schema": "glaciereq.repo-target-contract.v1",
   "identity": {
     "repository_id": "GlacierEQ/spacex-mission-control",
-    "family": "elite-estate"
+    "family": "synthetic-mission-operations"
   },
   "current": {
-    "state": "PROMOTED",
+    "state": "TESTED",
     "implemented": true,
     "tested": true,
     "deployed": false
   },
+  "verified_capability": "deterministic-local-mission-operations-simulation",
+  "evidence_token": "LOCAL_MISSION_OPS_SIMULATION_NOT_FLIGHT_COMMAND_AUTHORITY",
   "nonclaims": [
-    "no employer affiliation",
-    "no production deployment without receipt"
+    "no SpaceX affiliation or proprietary mission-control access",
+    "no Falcon or Starship procedure compatibility",
+    "no real flight command authority",
+    "no live telemetry, voice, WebSocket, MCP, provider, or mesh integration",
+    "no production performance or deployment claim"
   ],
   "donor_plan": {
     "mode": "none",
     "donors": []
   },
-  "frozen_at": "2026-08-10T04:12Z"
+  "truth_hardened_at": "2026-08-10T19:55:00-10:00"
 }

@@ -1,1 +1,9 @@
-{"capabilities": ["hyper-scaling"]}
+{
+  "capabilities": [
+    "severity-filtered-event-fanout",
+    "bounded-telemetry-aggregation",
+    "synthetic-mission-phase-orchestration",
+    "callback-and-abort-control-flow",
+    "local-operations-state-summarization"
+  ]
+}

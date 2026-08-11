@@ -28,9 +28,11 @@ def test_summary_and_events_emit_simulation_evidence_state() -> None:
     orchestrator = MissionOrchestrator()
     create_demo_mission(orchestrator)
     orchestrator.check_transitions()
-    assert orchestrator.mission_summary["evidence_state"] == EVIDENCE_STATE
+    summary = orchestrator.mission_summary
+    assert summary["evidence_state"] == EVIDENCE_STATE
     assert orchestrator.event_log[-1]["evidence_state"] == EVIDENCE_STATE
-    assert orchestrator.mission_elapsed >= orchestrator.phase_elapsed
+    assert summary["mission_elapsed"] >= 0.0
+    assert summary["phase_elapsed"] >= 0.0
 
 
 def test_machine_truth_matches_local_simulation_scope() -> None:

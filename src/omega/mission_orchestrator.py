@@ -1,7 +1,9 @@
-"""Mission orchestrator — coordinates all subsystems during flight phases.
+"""Repository-local mission-operations state-machine laboratory.
 
-State machine for mission timeline: pre-launch, ascent, staging, coast,
-entry, landing. Triggers subsystem actions at phase transitions.
+The phases and threshold transitions are synthetic portfolio fixtures for testing
+orchestration, callbacks, event history, abort behavior, and telemetry-driven
+state transitions. They are not SpaceX procedures, Falcon/Starship flight rules,
+mission data, or command authority.
 """
 
 import time
@@ -9,7 +11,9 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Callable, Optional
 
-from alpha.telemetry_aggregator import TelemetryAggregator, TelemetryPoint, SourceType
+from alpha.telemetry_aggregator import TelemetryAggregator, TelemetryPoint
+
+EVIDENCE_STATE = "LOCAL_MISSION_OPS_SIMULATION_NOT_FLIGHT_COMMAND_AUTHORITY"
 
 
 class MissionPhase(Enum):
@@ -64,6 +68,7 @@ class MissionOrchestrator:
         self._actions: list[SubsystemAction] = []
         self._event_log: list[MissionEvent] = []
         self._phase_start: float = 0.0
+        self._mission_start: float = 0.0
         self._callbacks: dict[MissionPhase, list[Callable]] = {}
         self._global_callbacks: list[Callable] = []
         self._abort_reason: str = ""
@@ -80,9 +85,9 @@ class MissionOrchestrator:
 
     @property
     def mission_elapsed(self) -> float:
-        if self._phase_start == 0:
+        if self._mission_start == 0:
             return 0.0
-        return time.time() - self._phase_start
+        return time.time() - self._mission_start
 
     def add_transition(self, transition: PhaseTransition):
         self._transitions.append(transition)
@@ -100,25 +105,28 @@ class MissionOrchestrator:
         if self._phase == MissionPhase.ABORT:
             return False
 
+        now = time.time()
         old_phase = self._phase
+        if self._mission_start == 0:
+            self._mission_start = now
         self._phase = new_phase
-        self._phase_start = time.time()
+        self._phase_start = now
 
         entry = MissionEvent(
-            time=time.time(),
+            time=now,
             phase=new_phase,
             event=f"{old_phase.name} -> {new_phase.name}: {event}",
+            details={"evidence_state": EVIDENCE_STATE},
         )
         self._event_log.append(entry)
 
-        for cb in self._callbacks.get(new_phase, []):
-            cb({"phase": new_phase, "from": old_phase})
+        for callback in self._callbacks.get(new_phase, []):
+            callback({"phase": new_phase, "from": old_phase})
 
-        for cb in self._global_callbacks:
-            cb({"phase": new_phase, "from": old_phase})
+        for callback in self._global_callbacks:
+            callback({"phase": new_phase, "from": old_phase})
 
         self._execute_actions(new_phase)
-
         return True
 
     def _execute_actions(self, phase: MissionPhase):
@@ -127,43 +135,53 @@ class MissionOrchestrator:
                 try:
                     action.action()
                     action.executed = True
-                except Exception as e:
-                    self._event_log.append(MissionEvent(
-                        time=time.time(), phase=phase,
-                        event=f"action_failed: {action.subsystem}: {e}",
-                    ))
+                except Exception:
+                    self._event_log.append(
+                        MissionEvent(
+                            time=time.time(),
+                            phase=phase,
+                            event=f"action_failed: {action.subsystem}",
+                            details={"evidence_state": EVIDENCE_STATE},
+                        )
+                    )
 
     def check_transitions(self) -> Optional[MissionPhase]:
         if self._phase in (MissionPhase.ABORT, MissionPhase.MISSION_COMPLETE):
             return None
 
-        for t in self._transitions:
-            if t.from_phase == self._phase:
-                try:
-                    if t.condition():
-                        self.transition_to(t.to_phase, t.name)
-                        return t.to_phase
-                except Exception:
-                    pass
+        for transition in self._transitions:
+            if transition.from_phase != self._phase:
+                continue
+            try:
+                ready = transition.condition()
+            except Exception:
+                ready = False
+            if ready:
+                self.transition_to(transition.to_phase, transition.name)
+                return transition.to_phase
         return None
 
     def abort(self, reason: str = "manual") -> bool:
         if self._phase in (MissionPhase.ABORT, MissionPhase.MISSION_COMPLETE):
             return False
 
+        now = time.time()
+        if self._mission_start == 0:
+            self._mission_start = now
         self._abort_reason = reason
         self._phase = MissionPhase.ABORT
-        self._phase_start = time.time()
-
-        entry = MissionEvent(
-            time=time.time(), phase=MissionPhase.ABORT,
-            event=f"ABORT: {reason}",
+        self._phase_start = now
+        self._event_log.append(
+            MissionEvent(
+                time=now,
+                phase=MissionPhase.ABORT,
+                event=f"ABORT: {reason}",
+                details={"evidence_state": EVIDENCE_STATE},
+            )
         )
-        self._event_log.append(entry)
 
-        for cb in self._callbacks.get(MissionPhase.ABORT, []):
-            cb({"phase": MissionPhase.ABORT, "reason": reason})
-
+        for callback in self._callbacks.get(MissionPhase.ABORT, []):
+            callback({"phase": MissionPhase.ABORT, "reason": reason})
         return True
 
     def ingest_telemetry(self, point: TelemetryPoint):
@@ -172,8 +190,13 @@ class MissionOrchestrator:
     @property
     def event_log(self) -> list[dict]:
         return [
-            {"time": e.time, "phase": e.phase.name, "event": e.event}
-            for e in self._event_log
+            {
+                "time": event.time,
+                "phase": event.phase.name,
+                "event": event.event,
+                "evidence_state": EVIDENCE_STATE,
+            }
+            for event in self._event_log
         ]
 
     @property
@@ -181,47 +204,58 @@ class MissionOrchestrator:
         return {
             "current_phase": self._phase.name,
             "phase_elapsed": round(self.phase_elapsed, 1),
+            "mission_elapsed": round(self.mission_elapsed, 1),
             "events": len(self._event_log),
             "telemetry_points": len(self.aggregator._buffer),
             "abort_reason": self._abort_reason or None,
+            "evidence_state": EVIDENCE_STATE,
         }
 
 
-def create_f9_mission(orchestrator: MissionOrchestrator):
-    """Configure Falcon 9 mission profile transitions."""
-    from alpha.telemetry_aggregator import TelemetryPoint
+def create_demo_mission(orchestrator: MissionOrchestrator):
+    """Configure synthetic two-stage mission transitions for local tests only."""
 
     def check_liftoff():
-        p = orchestrator.aggregator.get_metric("altitude")
-        return p and p.latest > 10
+        point = orchestrator.aggregator.get_metric("altitude")
+        return bool(point and point.latest > 10)
 
     def check_meco():
-        p = orchestrator.aggregator.get_metric("altitude")
-        return p and p.latest > 60000
+        point = orchestrator.aggregator.get_metric("altitude")
+        return bool(point and point.latest > 60000)
 
     def check_staging():
-        m = orchestrator.aggregator.get_metric("meco_complete")
-        return m and m.latest > 0
+        point = orchestrator.aggregator.get_metric("meco_complete")
+        return bool(point and point.latest > 0)
 
     def check_orbit():
-        v = orchestrator.aggregator.get_metric("velocity")
-        return v and v.latest > 7800
+        point = orchestrator.aggregator.get_metric("velocity")
+        return bool(point and point.latest > 7800)
 
     transitions = [
         PhaseTransition(MissionPhase.PRE_LAUNCH, MissionPhase.COUNTDOWN, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.COUNTDOWN, MissionPhase.LIFTOFF, check_liftoff, "altitude > 10m"),
+        PhaseTransition(MissionPhase.COUNTDOWN, MissionPhase.LIFTOFF, check_liftoff, "demo altitude gate"),
         PhaseTransition(MissionPhase.LIFTOFF, MissionPhase.ASCENT, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.ASCENT, MissionPhase.MECO, check_meco, "altitude > 60km"),
-        PhaseTransition(MissionPhase.MECO, MissionPhase.STAGE_SEPARATION, check_staging, "meco_confirmed"),
+        PhaseTransition(MissionPhase.ASCENT, MissionPhase.MECO, check_meco, "demo altitude gate"),
+        PhaseTransition(MissionPhase.MECO, MissionPhase.STAGE_SEPARATION, check_staging, "demo stage gate"),
         PhaseTransition(MissionPhase.STAGE_SEPARATION, MissionPhase.SECOND_ENGINE_START, lambda: True, "auto"),
         PhaseTransition(MissionPhase.STAGE_SEPARATION, MissionPhase.FIRST_STAGE_BURNBACK, lambda: True, "auto"),
         PhaseTransition(MissionPhase.SECOND_ENGINE_START, MissionPhase.FAIRING_SEPARATION, lambda: True, "auto"),
         PhaseTransition(MissionPhase.SECOND_ENGINE_START, MissionPhase.SECOND_STAGE_BURN, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.SECOND_STAGE_BURN, MissionPhase.COAST, check_orbit, "orbit_reached"),
+        PhaseTransition(MissionPhase.SECOND_STAGE_BURN, MissionPhase.COAST, check_orbit, "demo velocity gate"),
         PhaseTransition(MissionPhase.COAST, MissionPhase.ORBITAL_INSERTION, lambda: True, "auto"),
         PhaseTransition(MissionPhase.ORBITAL_INSERTION, MissionPhase.DEPLOY, lambda: True, "auto"),
         PhaseTransition(MissionPhase.DEPLOY, MissionPhase.MISSION_COMPLETE, lambda: True, "auto"),
     ]
 
-    for t in transitions:
-        orchestrator.add_transition(t)
+    for transition in transitions:
+        orchestrator.add_transition(transition)
+
+
+def create_f9_mission(orchestrator: MissionOrchestrator):
+    """Backward-compatible historical alias for the synthetic demo profile.
+
+    The name does not imply Falcon 9 compatibility, SpaceX procedure knowledge,
+    or flight authority. New code should call :func:`create_demo_mission`.
+    """
+
+    create_demo_mission(orchestrator)

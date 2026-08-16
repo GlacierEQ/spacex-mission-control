@@ -4,6 +4,25 @@
     "bounded-telemetry-aggregation",
     "synthetic-mission-phase-orchestration",
     "callback-and-abort-control-flow",
-    "local-operations-state-summarization"
-  ]
+    "local-operations-state-summarization",
+    "apex-mass-recovery-enrolled"
+  ],
+  "recovery": {
+    "identity": "APEX_IS_THE_COUNTER_TO_CANONICAL_DESTRUCTION",
+    "law": "MAXIMUM_COHERENT_ADVANCE",
+    "program": "mass-job-repo-recovery",
+    "dual_plane": true
+  },
+  "planes": {
+    "verified": [
+      "severity-filtered-event-fanout",
+      "bounded-telemetry-aggregation",
+      "synthetic-mission-phase-orchestration",
+      "callback-and-abort-control-flow",
+      "local-operations-state-summarization"
+    ],
+    "implemented": [
+      "apex-mass-recovery-enrolled"
+    ]
+  }
 }

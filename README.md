@@ -1,5 +1,9 @@
 # SpaceX Mission Control — Synthetic Mission Operations Laboratory
 
+> **APEX dual-plane recovery:** verified lab proof remains `LOCAL_MISSION_OPS_SIMULATION_NOT_FLIGHT_COMMAND_AUTHORITY` (not SpaceX flight authority). Implemented software planes are restored as first-class capabilities under MAXIMUM_COHERENT_ADVANCE — governance routes power; it does not amputate it.
+
+**Implemented planes:** mission-orchestrator-callbacks, abort-behavior-state-machine, console-operator-surface, transition-gate-composition
+
 **A repository-local mission-operations simulation with severity-filtered event fan-out, telemetry aggregation, phase-state orchestration, callbacks, abort behavior, and synthetic transition gates.**
 
 > **Independence / non-affiliation:** This is an independent GlacierEQ engineering portfolio project. It is not affiliated with, endorsed by, or based on private mission procedures, flight rules, command systems, telemetry, or operational data from SpaceX. The repository name describes a portfolio target/domain exercise, not provenance or command authority.

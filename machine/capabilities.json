@@ -4,6 +4,9 @@
     "bounded-telemetry-aggregation",
     "synthetic-mission-phase-orchestration",
     "callback-and-abort-control-flow",
-    "local-operations-state-summarization"
+    "local-operations-state-summarization",
+    "hmac-signed-expiring-command-intents",
+    "scope-bound-one-use-command-authorization",
+    "receipt-bearing-controlled-simulation-actions"
   ]
 }

@@ -1,9 +1,9 @@
 """Repository-local mission-operations state-machine laboratory.
 
 The phases and threshold transitions are synthetic portfolio fixtures for testing
-orchestration, callbacks, event history, abort behavior, and telemetry-driven
-state transitions. They are not SpaceX procedures, Falcon/Starship flight rules,
-mission data, or command authority.
+orchestration, callbacks, event history, abort behavior, telemetry-driven state
+transitions, and expiring local command-intent authorization. They are not SpaceX
+procedures, Falcon/Starship flight rules, mission data, or flight authority.
 """
 
 import time
@@ -12,6 +12,7 @@ from enum import Enum, auto
 from typing import Callable, Optional
 
 from alpha.telemetry_aggregator import TelemetryAggregator, TelemetryPoint
+from omega.command_authority import CommandAuthorityHalfLife
 
 EVIDENCE_STATE = "LOCAL_MISSION_OPS_SIMULATION_NOT_FLIGHT_COMMAND_AUTHORITY"
 
@@ -58,11 +59,24 @@ class SubsystemAction:
     subsystem: str
     action: Callable
     executed: bool = False
+    requires_authority: bool = False
+    authority_scope: str | None = None
+    authority_subject: str | None = None
+    authority_token: str | None = None
+
+    @property
+    def effective_scope(self) -> str:
+        return self.authority_scope or f"subsystem:{self.subsystem}"
 
 
 class MissionOrchestrator:
-    def __init__(self, aggregator: Optional[TelemetryAggregator] = None):
+    def __init__(
+        self,
+        aggregator: Optional[TelemetryAggregator] = None,
+        authority_plane: CommandAuthorityHalfLife | None = None,
+    ):
         self.aggregator = aggregator or TelemetryAggregator()
+        self.authority_plane = authority_plane
         self._phase = MissionPhase.PRE_LAUNCH
         self._transitions: list[PhaseTransition] = []
         self._actions: list[SubsystemAction] = []
@@ -94,6 +108,33 @@ class MissionOrchestrator:
 
     def add_action(self, action: SubsystemAction):
         self._actions.append(action)
+
+    def authorize_action(
+        self,
+        action: SubsystemAction,
+        *,
+        subject: str,
+        ttl_seconds: float = 30.0,
+        metadata: dict | None = None,
+    ) -> str:
+        """Issue a one-use expiring token and bind it to a controlled action."""
+
+        if self.authority_plane is None:
+            raise RuntimeError("authority plane is not configured")
+        token = self.authority_plane.issue(
+            subject=subject,
+            scope=action.effective_scope,
+            ttl_seconds=ttl_seconds,
+            metadata={
+                "phase": action.phase.name,
+                "subsystem": action.subsystem,
+                **(metadata or {}),
+            },
+        )
+        action.requires_authority = True
+        action.authority_subject = subject
+        action.authority_token = token
+        return token
 
     def on_phase(self, phase: MissionPhase, callback: Callable):
         self._callbacks.setdefault(phase, []).append(callback)
@@ -129,21 +170,71 @@ class MissionOrchestrator:
         self._execute_actions(new_phase)
         return True
 
+    def _record_action_event(self, phase: MissionPhase, event: str, details: dict) -> None:
+        self._event_log.append(
+            MissionEvent(
+                time=time.time(),
+                phase=phase,
+                event=event,
+                details={"evidence_state": EVIDENCE_STATE, **details},
+            )
+        )
+
     def _execute_actions(self, phase: MissionPhase):
         for action in self._actions:
-            if action.phase == phase and not action.executed:
-                try:
-                    action.action()
-                    action.executed = True
-                except Exception:
-                    self._event_log.append(
-                        MissionEvent(
-                            time=time.time(),
-                            phase=phase,
-                            event=f"action_failed: {action.subsystem}",
-                            details={"evidence_state": EVIDENCE_STATE},
-                        )
+            if action.phase != phase or action.executed:
+                continue
+
+            authority_receipt = None
+            if action.requires_authority:
+                if self.authority_plane is None:
+                    self._record_action_event(
+                        phase,
+                        f"action_blocked: {action.subsystem}",
+                        {"reason": "authority_plane_not_configured", "scope": action.effective_scope},
                     )
+                    continue
+                if not action.authority_token:
+                    self._record_action_event(
+                        phase,
+                        f"action_blocked: {action.subsystem}",
+                        {"reason": "authority_token_missing", "scope": action.effective_scope},
+                    )
+                    continue
+                authority_receipt = self.authority_plane.consume(
+                    action.authority_token,
+                    required_scope=action.effective_scope,
+                    required_subject=action.authority_subject,
+                )
+                if not authority_receipt.authorized:
+                    self._record_action_event(
+                        phase,
+                        f"action_blocked: {action.subsystem}",
+                        {"authority": authority_receipt.as_dict()},
+                    )
+                    continue
+
+            try:
+                action.action()
+                action.executed = True
+                self._record_action_event(
+                    phase,
+                    f"action_executed: {action.subsystem}",
+                    {
+                        "scope": action.effective_scope if action.requires_authority else None,
+                        "authority": authority_receipt.as_dict() if authority_receipt else None,
+                    },
+                )
+            except Exception as error:
+                self._record_action_event(
+                    phase,
+                    f"action_failed: {action.subsystem}",
+                    {
+                        "error_type": type(error).__name__,
+                        "scope": action.effective_scope if action.requires_authority else None,
+                        "authority": authority_receipt.as_dict() if authority_receipt else None,
+                    },
+                )
 
     def check_transitions(self) -> Optional[MissionPhase]:
         if self._phase in (MissionPhase.ABORT, MissionPhase.MISSION_COMPLETE):
@@ -194,6 +285,7 @@ class MissionOrchestrator:
                 "time": event.time,
                 "phase": event.phase.name,
                 "event": event.event,
+                "details": dict(event.details),
                 "evidence_state": EVIDENCE_STATE,
             }
             for event in self._event_log
@@ -208,6 +300,11 @@ class MissionOrchestrator:
             "events": len(self._event_log),
             "telemetry_points": len(self.aggregator._buffer),
             "abort_reason": self._abort_reason or None,
+            "controlled_actions": sum(action.requires_authority for action in self._actions),
+            "executed_actions": sum(action.executed for action in self._actions),
+            "consumed_authority_tokens": (
+                self.authority_plane.consumed_count if self.authority_plane else 0
+            ),
             "evidence_state": EVIDENCE_STATE,
         }
 

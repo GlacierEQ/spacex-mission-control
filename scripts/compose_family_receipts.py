@@ -21,22 +21,32 @@ def _digest(value: object) -> str:
     return hashlib.sha256(_stable(value)).hexdigest()
 
 
-def load_routing(path: Path = ROUTING_PATH) -> dict[str, Any]:
-    routing = json.loads(path.read_text(encoding="utf-8"))
+def _validate_routing_invariants(routing: dict[str, Any]) -> None:
     if routing.get("schema") != "glaciereq.apex-family-routing.v1":
         raise ValueError("unsupported family-routing schema")
     if routing.get("head_role") != "ROUTING_COMPOSITION_MASTER":
         raise ValueError("family head must remain ROUTING_COMPOSITION_MASTER")
+    if routing.get("routing_privilege") != "ROUTING_COMPOSITION_ONLY":
+        raise ValueError("family head routing privilege must remain routing/composition only")
     if routing.get("capability_truth_privilege") is not False:
         raise ValueError("family head routing role may not create capability truth privilege")
+    if routing.get("head_implementation_revisable") is not True:
+        raise ValueError("family head implementation must remain revisable")
+
+
+def load_routing(path: Path = ROUTING_PATH) -> dict[str, Any]:
+    routing = json.loads(path.read_text(encoding="utf-8"))
+    _validate_routing_invariants(routing)
     return routing
 
 
 def member_index(routing: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    _validate_routing_invariants(routing)
     return {row["receipt_schema"]: row for row in routing.get("members", [])}
 
 
 def verify_member_receipt(receipt: dict[str, Any], routing: dict[str, Any]) -> dict[str, Any]:
+    _validate_routing_invariants(routing)
     schema = receipt.get("schema")
     member = member_index(routing).get(schema)
     if member is None:
@@ -74,6 +84,7 @@ def verify_member_receipt(receipt: dict[str, Any], routing: dict[str, Any]) -> d
 
 
 def build_plan(routing: dict[str, Any]) -> dict[str, Any]:
+    _validate_routing_invariants(routing)
     members = [
         {
             "repository": row["repository"],
@@ -97,6 +108,7 @@ def build_plan(routing: dict[str, Any]) -> dict[str, Any]:
 
 
 def compose(receipts: list[dict[str, Any]], routing: dict[str, Any]) -> dict[str, Any]:
+    _validate_routing_invariants(routing)
     verified = [verify_member_receipt(receipt, routing) for receipt in receipts]
     repositories = [row["repository"] for row in verified]
     if len(repositories) != len(set(repositories)):

@@ -1,0 +1,74 @@
+{
+  "schema": "glaciereq.apex-family-routing.v1",
+  "family_id": "FAM-SPACEX",
+  "head_repository": "GlacierEQ/spacex-mission-control",
+  "head_role": "ROUTING_COMPOSITION_MASTER",
+  "selection_mode": "CURRENT_BEST_REVISABLE",
+  "routing_privilege": "ROUTING_COMPOSITION_ONLY",
+  "capability_truth_privilege": false,
+  "stable_routing_role": true,
+  "head_implementation_revisable": true,
+  "mastered_routing_capabilities": [
+    "family-topology-discovery",
+    "capability-routing",
+    "multi-member-receipt-composition",
+    "evidence-aggregation",
+    "cross-domain-fusion",
+    "mission-state-orchestration",
+    "fallback-and-recovery-routing"
+  ],
+  "head_local_capabilities": [
+    "severity-filtered-event-fanout",
+    "bounded-telemetry-aggregation",
+    "synthetic-mission-phase-orchestration",
+    "callback-and-abort-control-flow",
+    "local-operations-state-summarization",
+    "hmac-signed-expiring-command-intents",
+    "scope-bound-one-use-command-authorization",
+    "receipt-bearing-controlled-simulation-actions"
+  ],
+  "composition_surface": "scripts/compose_family_receipts.py",
+  "members": [
+    {
+      "repository": "GlacierEQ/spacex-propulsion-monitor",
+      "role": "SPECIALIST",
+      "capabilities": ["deterministic-local-multi-sensor-health-evaluation"],
+      "receipt_schema": "glaciereq.health-operate-receipt.v1",
+      "operator_surface": "scripts/operate.py"
+    },
+    {
+      "repository": "GlacierEQ/spacex-pad-weather-gate",
+      "role": "SPECIALIST",
+      "capabilities": ["deterministic-local-environmental-constraint-evaluation"],
+      "receipt_schema": "glaciereq.weather-operate-receipt.v1",
+      "operator_surface": "scripts/operate.py"
+    },
+    {
+      "repository": "GlacierEQ/spacex-launch-sequencer",
+      "role": "SPECIALIST",
+      "capabilities": ["deterministic-local-countdown-orchestration"],
+      "receipt_schema": "glaciereq.countdown-operate-receipt.v1",
+      "operator_surface": "scripts/operate.py"
+    },
+    {
+      "repository": "GlacierEQ/spacex-orbital-mechanics",
+      "role": "SPECIALIST",
+      "capabilities": ["kepler-equation-solving", "repository-native-lambert-two-body"],
+      "receipt_schema": "glaciereq.orbital-operate-receipt.v1",
+      "operator_surface": "scripts/operate.py"
+    }
+  ],
+  "composition_invariants": {
+    "verify_member_receipt_hashes": true,
+    "require_revisable_member_selection": true,
+    "preserve_specialist_receipts": true,
+    "preserve_member_identity": true,
+    "head_may_not_rewrite_member_claims": true,
+    "composition_failure_is_explicit": true
+  },
+  "discovery_state": {
+    "registered_family_members_total": 19,
+    "receipt_wired_specialists": 4,
+    "remaining_members_require_capability_discovery": true
+  }
+}

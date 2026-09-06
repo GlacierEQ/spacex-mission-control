@@ -1,4 +1,5 @@
 """Mission console tests (elite — no ANSWER theater)."""
+
 from __future__ import annotations
 
 import sys

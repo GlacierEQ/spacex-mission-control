@@ -3,6 +3,7 @@
 
 Human-readable ops surface for flight director style fan-out.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

@@ -14,7 +14,9 @@ spec.loader.exec_module(module)
 
 
 def digest(body: dict) -> str:
-    raw = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    raw = json.dumps(
+        body, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -50,10 +52,22 @@ def test_plan_exposes_all_initial_wired_specialists() -> None:
 def test_composition_preserves_specialist_identity_and_capability() -> None:
     result = module.compose(
         [
-            receipt("glaciereq.health-operate-receipt.v1", "deterministic-local-multi-sensor-health-evaluation"),
-            receipt("glaciereq.weather-operate-receipt.v1", "deterministic-local-environmental-constraint-evaluation"),
-            receipt("glaciereq.countdown-operate-receipt.v1", "deterministic-local-countdown-orchestration"),
-            receipt("glaciereq.orbital-operate-receipt.v1", "repository-native-lambert-two-body"),
+            receipt(
+                "glaciereq.health-operate-receipt.v1",
+                "deterministic-local-multi-sensor-health-evaluation",
+            ),
+            receipt(
+                "glaciereq.weather-operate-receipt.v1",
+                "deterministic-local-environmental-constraint-evaluation",
+            ),
+            receipt(
+                "glaciereq.countdown-operate-receipt.v1",
+                "deterministic-local-countdown-orchestration",
+            ),
+            receipt(
+                "glaciereq.orbital-operate-receipt.v1",
+                "repository-native-lambert-two-body",
+            ),
         ],
         routing(),
     )
@@ -65,7 +79,10 @@ def test_composition_preserves_specialist_identity_and_capability() -> None:
 
 
 def test_tampered_receipt_is_rejected() -> None:
-    payload = receipt("glaciereq.health-operate-receipt.v1", "deterministic-local-multi-sensor-health-evaluation")
+    payload = receipt(
+        "glaciereq.health-operate-receipt.v1",
+        "deterministic-local-multi-sensor-health-evaluation",
+    )
     payload["evidence_state"] = "TAMPERED"
     try:
         module.compose([payload], routing())
@@ -90,7 +107,10 @@ def test_head_never_gains_capability_truth_privilege() -> None:
     cfg["capability_truth_privilege"] = True
     try:
         module.verify_member_receipt(
-            receipt("glaciereq.health-operate-receipt.v1", "deterministic-local-multi-sensor-health-evaluation"),
+            receipt(
+                "glaciereq.health-operate-receipt.v1",
+                "deterministic-local-multi-sensor-health-evaluation",
+            ),
             cfg,
         )
     except ValueError as exc:

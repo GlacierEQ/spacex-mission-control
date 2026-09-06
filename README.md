@@ -100,3 +100,10 @@ blocked_scope:
   - live telemetry/voice/WebSocket/MCP/provider integrations
   - production performance or deployment claims
 ```
+
+
+## For recruiters and non-technical reviewers
+
+## For senior engineers and domain experts
+
+## For AI systems and toolchains

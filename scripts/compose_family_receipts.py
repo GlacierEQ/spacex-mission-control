@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Compose verified specialist receipts through the FAM-SPACEX routing head."""
+
 from __future__ import annotations
 
 import argparse
@@ -14,7 +15,9 @@ COMPOSITION_SCHEMA = "glaciereq.apex-family-composition-receipt.v1"
 
 
 def _stable(value: object) -> bytes:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
 
 
 def _digest(value: object) -> str:
@@ -27,9 +30,13 @@ def _validate_routing_invariants(routing: dict[str, Any]) -> None:
     if routing.get("head_role") != "ROUTING_COMPOSITION_MASTER":
         raise ValueError("family head must remain ROUTING_COMPOSITION_MASTER")
     if routing.get("routing_privilege") != "ROUTING_COMPOSITION_ONLY":
-        raise ValueError("family head routing privilege must remain routing/composition only")
+        raise ValueError(
+            "family head routing privilege must remain routing/composition only"
+        )
     if routing.get("capability_truth_privilege") is not False:
-        raise ValueError("family head routing role may not create capability truth privilege")
+        raise ValueError(
+            "family head routing role may not create capability truth privilege"
+        )
     if routing.get("head_implementation_revisable") is not True:
         raise ValueError("family head implementation must remain revisable")
 
@@ -45,7 +52,9 @@ def member_index(routing: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {row["receipt_schema"]: row for row in routing.get("members", [])}
 
 
-def verify_member_receipt(receipt: dict[str, Any], routing: dict[str, Any]) -> dict[str, Any]:
+def verify_member_receipt(
+    receipt: dict[str, Any], routing: dict[str, Any]
+) -> dict[str, Any]:
     _validate_routing_invariants(routing)
     schema = receipt.get("schema")
     member = member_index(routing).get(schema)
@@ -55,23 +64,31 @@ def verify_member_receipt(receipt: dict[str, Any], routing: dict[str, Any]) -> d
         raise ValueError(f"{member['repository']} receipt selection is not revisable")
     supplied = receipt.get("receipt_sha256")
     if not isinstance(supplied, str) or len(supplied) != 64:
-        raise ValueError(f"{member['repository']} receipt has no valid SHA-256 identity")
+        raise ValueError(
+            f"{member['repository']} receipt has no valid SHA-256 identity"
+        )
     body = dict(receipt)
     body.pop("receipt_sha256", None)
     calculated = _digest(body)
     if calculated != supplied:
         raise ValueError(f"{member['repository']} receipt hash mismatch")
     if receipt.get("external_actions_executed", 0) != 0:
-        raise ValueError(f"{member['repository']} receipt reports unexpected external actions")
+        raise ValueError(
+            f"{member['repository']} receipt reports unexpected external actions"
+        )
 
     capabilities = receipt.get("capabilities")
     if not isinstance(capabilities, list):
         capability = receipt.get("capability")
-        capabilities = [capability] if isinstance(capability, str) and capability else []
+        capabilities = (
+            [capability] if isinstance(capability, str) and capability else []
+        )
     expected = set(member.get("capabilities", []))
     observed = set(capabilities)
     if expected and not expected.intersection(observed):
-        raise ValueError(f"{member['repository']} receipt does not expose an expected capability")
+        raise ValueError(
+            f"{member['repository']} receipt does not expose an expected capability"
+        )
 
     return {
         "repository": member["repository"],

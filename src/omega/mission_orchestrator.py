@@ -170,7 +170,9 @@ class MissionOrchestrator:
         self._execute_actions(new_phase)
         return True
 
-    def _record_action_event(self, phase: MissionPhase, event: str, details: dict) -> None:
+    def _record_action_event(
+        self, phase: MissionPhase, event: str, details: dict
+    ) -> None:
         self._event_log.append(
             MissionEvent(
                 time=time.time(),
@@ -191,14 +193,20 @@ class MissionOrchestrator:
                     self._record_action_event(
                         phase,
                         f"action_blocked: {action.subsystem}",
-                        {"reason": "authority_plane_not_configured", "scope": action.effective_scope},
+                        {
+                            "reason": "authority_plane_not_configured",
+                            "scope": action.effective_scope,
+                        },
                     )
                     continue
                 if not action.authority_token:
                     self._record_action_event(
                         phase,
                         f"action_blocked: {action.subsystem}",
-                        {"reason": "authority_token_missing", "scope": action.effective_scope},
+                        {
+                            "reason": "authority_token_missing",
+                            "scope": action.effective_scope,
+                        },
                     )
                     continue
                 authority_receipt = self.authority_plane.consume(
@@ -221,8 +229,12 @@ class MissionOrchestrator:
                     phase,
                     f"action_executed: {action.subsystem}",
                     {
-                        "scope": action.effective_scope if action.requires_authority else None,
-                        "authority": authority_receipt.as_dict() if authority_receipt else None,
+                        "scope": action.effective_scope
+                        if action.requires_authority
+                        else None,
+                        "authority": authority_receipt.as_dict()
+                        if authority_receipt
+                        else None,
                     },
                 )
             except Exception as error:
@@ -231,8 +243,12 @@ class MissionOrchestrator:
                     f"action_failed: {action.subsystem}",
                     {
                         "error_type": type(error).__name__,
-                        "scope": action.effective_scope if action.requires_authority else None,
-                        "authority": authority_receipt.as_dict() if authority_receipt else None,
+                        "scope": action.effective_scope
+                        if action.requires_authority
+                        else None,
+                        "authority": authority_receipt.as_dict()
+                        if authority_receipt
+                        else None,
                     },
                 )
 
@@ -300,7 +316,9 @@ class MissionOrchestrator:
             "events": len(self._event_log),
             "telemetry_points": len(self.aggregator._buffer),
             "abort_reason": self._abort_reason or None,
-            "controlled_actions": sum(action.requires_authority for action in self._actions),
+            "controlled_actions": sum(
+                action.requires_authority for action in self._actions
+            ),
             "executed_actions": sum(action.executed for action in self._actions),
             "consumed_authority_tokens": (
                 self.authority_plane.consumed_count if self.authority_plane else 0
@@ -329,19 +347,66 @@ def create_demo_mission(orchestrator: MissionOrchestrator):
         return bool(point and point.latest > 7800)
 
     transitions = [
-        PhaseTransition(MissionPhase.PRE_LAUNCH, MissionPhase.COUNTDOWN, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.COUNTDOWN, MissionPhase.LIFTOFF, check_liftoff, "demo altitude gate"),
-        PhaseTransition(MissionPhase.LIFTOFF, MissionPhase.ASCENT, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.ASCENT, MissionPhase.MECO, check_meco, "demo altitude gate"),
-        PhaseTransition(MissionPhase.MECO, MissionPhase.STAGE_SEPARATION, check_staging, "demo stage gate"),
-        PhaseTransition(MissionPhase.STAGE_SEPARATION, MissionPhase.SECOND_ENGINE_START, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.STAGE_SEPARATION, MissionPhase.FIRST_STAGE_BURNBACK, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.SECOND_ENGINE_START, MissionPhase.FAIRING_SEPARATION, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.SECOND_ENGINE_START, MissionPhase.SECOND_STAGE_BURN, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.SECOND_STAGE_BURN, MissionPhase.COAST, check_orbit, "demo velocity gate"),
-        PhaseTransition(MissionPhase.COAST, MissionPhase.ORBITAL_INSERTION, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.ORBITAL_INSERTION, MissionPhase.DEPLOY, lambda: True, "auto"),
-        PhaseTransition(MissionPhase.DEPLOY, MissionPhase.MISSION_COMPLETE, lambda: True, "auto"),
+        PhaseTransition(
+            MissionPhase.PRE_LAUNCH, MissionPhase.COUNTDOWN, lambda: True, "auto"
+        ),
+        PhaseTransition(
+            MissionPhase.COUNTDOWN,
+            MissionPhase.LIFTOFF,
+            check_liftoff,
+            "demo altitude gate",
+        ),
+        PhaseTransition(
+            MissionPhase.LIFTOFF, MissionPhase.ASCENT, lambda: True, "auto"
+        ),
+        PhaseTransition(
+            MissionPhase.ASCENT, MissionPhase.MECO, check_meco, "demo altitude gate"
+        ),
+        PhaseTransition(
+            MissionPhase.MECO,
+            MissionPhase.STAGE_SEPARATION,
+            check_staging,
+            "demo stage gate",
+        ),
+        PhaseTransition(
+            MissionPhase.STAGE_SEPARATION,
+            MissionPhase.SECOND_ENGINE_START,
+            lambda: True,
+            "auto",
+        ),
+        PhaseTransition(
+            MissionPhase.STAGE_SEPARATION,
+            MissionPhase.FIRST_STAGE_BURNBACK,
+            lambda: True,
+            "auto",
+        ),
+        PhaseTransition(
+            MissionPhase.SECOND_ENGINE_START,
+            MissionPhase.FAIRING_SEPARATION,
+            lambda: True,
+            "auto",
+        ),
+        PhaseTransition(
+            MissionPhase.SECOND_ENGINE_START,
+            MissionPhase.SECOND_STAGE_BURN,
+            lambda: True,
+            "auto",
+        ),
+        PhaseTransition(
+            MissionPhase.SECOND_STAGE_BURN,
+            MissionPhase.COAST,
+            check_orbit,
+            "demo velocity gate",
+        ),
+        PhaseTransition(
+            MissionPhase.COAST, MissionPhase.ORBITAL_INSERTION, lambda: True, "auto"
+        ),
+        PhaseTransition(
+            MissionPhase.ORBITAL_INSERTION, MissionPhase.DEPLOY, lambda: True, "auto"
+        ),
+        PhaseTransition(
+            MissionPhase.DEPLOY, MissionPhase.MISSION_COMPLETE, lambda: True, "auto"
+        ),
     ]
 
     for transition in transitions:

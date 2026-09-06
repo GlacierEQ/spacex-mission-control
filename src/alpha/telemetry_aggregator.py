@@ -6,7 +6,6 @@ Pure math + data structures, zero external dependencies.
 """
 
 import time
-import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Optional
@@ -90,12 +89,16 @@ class TelemetryAggregator:
     def define_metric(self, definition: MetricDefinition):
         self._metrics[definition.name] = AggregatedMetric(definition=definition)
 
-    def register_source(self, name: str, source_type: SourceType, clock_offset: float = 0.0):
+    def register_source(
+        self, name: str, source_type: SourceType, clock_offset: float = 0.0
+    ):
         self._sources[name] = source_type
         self._time_sync_offsets[name] = clock_offset
 
     def set_rate(self, metric_name: str, target_rate_hz: float):
-        self._rate_converters[metric_name] = 1.0 / target_rate_hz if target_rate_hz > 0 else 0
+        self._rate_converters[metric_name] = (
+            1.0 / target_rate_hz if target_rate_hz > 0 else 0
+        )
 
     def ingest(self, point: TelemetryPoint) -> bool:
         if point.source in self._time_sync_offsets:
@@ -103,7 +106,7 @@ class TelemetryAggregator:
 
         self._buffer.append(point)
         if len(self._buffer) > self._max_buffer:
-            self._buffer = self._buffer[-self._max_buffer // 2:]
+            self._buffer = self._buffer[-self._max_buffer // 2 :]
 
         metric = self._metrics.get(point.metric)
         if metric:

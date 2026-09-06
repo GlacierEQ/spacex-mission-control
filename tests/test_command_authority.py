@@ -8,7 +8,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from omega.command_authority import CommandAuthorityHalfLife
-from omega.mission_orchestrator import MissionOrchestrator, MissionPhase, SubsystemAction
+from omega.mission_orchestrator import (
+    MissionOrchestrator,
+    MissionPhase,
+    SubsystemAction,
+)
 
 
 class Clock:
@@ -74,7 +78,9 @@ def test_scope_mismatch_fails_closed() -> None:
     clock = Clock()
     plane = authority(clock)
     token = plane.issue(subject="operator-sim", scope="demo:a", ttl_seconds=10)
-    receipt = plane.consume(token, required_scope="demo:b", required_subject="operator-sim")
+    receipt = plane.consume(
+        token, required_scope="demo:b", required_subject="operator-sim"
+    )
     assert receipt.authorized is False
     assert receipt.reason == "scope_mismatch"
     assert plane.consumed_count == 0
@@ -85,8 +91,12 @@ def test_consumed_token_cannot_be_replayed() -> None:
     plane = authority(clock)
     token = plane.issue(subject="operator-sim", scope="demo:a", ttl_seconds=10)
 
-    first = plane.consume(token, required_scope="demo:a", required_subject="operator-sim")
-    second = plane.consume(token, required_scope="demo:a", required_subject="operator-sim")
+    first = plane.consume(
+        token, required_scope="demo:a", required_subject="operator-sim"
+    )
+    second = plane.consume(
+        token, required_scope="demo:a", required_subject="operator-sim"
+    )
 
     assert first.authorized is True
     assert second.authorized is False
@@ -115,7 +125,9 @@ def test_uncontrolled_legacy_simulation_action_remains_compatible() -> None:
     orch = MissionOrchestrator()
     executed: list[str] = []
     orch.add_action(
-        SubsystemAction(MissionPhase.LIFTOFF, "legacy-demo", lambda: executed.append("ran"))
+        SubsystemAction(
+            MissionPhase.LIFTOFF, "legacy-demo", lambda: executed.append("ran")
+        )
     )
 
     orch.transition_to(MissionPhase.LIFTOFF)

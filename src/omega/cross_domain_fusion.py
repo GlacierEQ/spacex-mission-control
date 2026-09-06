@@ -15,10 +15,8 @@ in the atmosphere + a tracking error on the ground = a single event
 fusion engine does.
 """
 
-import math
 import time
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -67,8 +65,7 @@ class CrossDomainCorrelator:
         cutoff = time.time() - self.correlation_window * 10
         for d in self._domain_anomalies:
             self._domain_anomalies[d] = [
-                a for a in self._domain_anomalies[d]
-                if a.get("timestamp", 0) > cutoff
+                a for a in self._domain_anomalies[d] if a.get("timestamp", 0) > cutoff
             ]
 
         self._detect_cross_domain()
@@ -183,11 +180,13 @@ class StateFusionEngine:
                 total_weight = sum(weights)
                 fused[key] = sum(v * w for v, w in zip(values, weights)) / total_weight
 
-        self._fused_history.append({
-            "timestamp": time.time(),
-            "state": fused,
-            "domains": list(self._domain_states.keys()),
-        })
+        self._fused_history.append(
+            {
+                "timestamp": time.time(),
+                "state": fused,
+                "domains": list(self._domain_states.keys()),
+            }
+        )
 
         return fused
 
@@ -226,7 +225,11 @@ class AnomalyRootCauseAnalyzer:
                 "source": "propulsion",
                 "symptoms": ["orbital", "atmosphere", "ground"],
                 "time_delays_s": [0, 0.5, 1.0],
-                "indicators": ["vibration_spike", "thrust_drop", "trajectory_deviation"],
+                "indicators": [
+                    "vibration_spike",
+                    "thrust_drop",
+                    "trajectory_deviation",
+                ],
             },
             "atmospheric_event": {
                 "source": "atmosphere",
@@ -251,7 +254,11 @@ class AnomalyRootCauseAnalyzer:
         best_score = 0
 
         for hypothesis_name, template in self._causal_templates.items():
-            if not all(d in event.domains for d in [template["source"]] + template["symptoms"][:len(event.domains) - 1]):
+            if not all(
+                d in event.domains
+                for d in [template["source"]]
+                + template["symptoms"][: len(event.domains) - 1]
+            ):
                 continue
 
             score = 0
@@ -310,14 +317,17 @@ class CrossDomainFusionSystem:
         for key, value in state.state_vector.items():
             unc = state.uncertainty.get(key, 1.0)
             if unc > 0.5 or abs(value) > 100:
-                self.correlator.report_anomaly(state.domain, {
-                    "type": "state_anomaly",
-                    "metric": key,
-                    "value": value,
-                    "uncertainty": unc,
-                    "severity": min(1.0, unc / 2),
-                    "confidence": state.confidence,
-                })
+                self.correlator.report_anomaly(
+                    state.domain,
+                    {
+                        "type": "state_anomaly",
+                        "metric": key,
+                        "value": value,
+                        "uncertainty": unc,
+                        "severity": min(1.0, unc / 2),
+                        "confidence": state.confidence,
+                    },
+                )
 
     def get_mission_situation(self) -> dict:
         fused_state = self.fusion_engine.fuse_state()

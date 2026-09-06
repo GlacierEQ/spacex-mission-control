@@ -7,10 +7,17 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from alpha.telemetry_aggregator import (
-    TelemetryAggregator, TelemetryPoint, MetricDefinition, MetricType, SourceType,
+    TelemetryAggregator,
+    TelemetryPoint,
+    MetricDefinition,
+    MetricType,
+    SourceType,
 )
 from omega.mission_orchestrator import (
-    MissionOrchestrator, MissionPhase, PhaseTransition, SubsystemAction,
+    MissionOrchestrator,
+    MissionPhase,
+    PhaseTransition,
+    SubsystemAction,
     create_f9_mission,
 )
 
@@ -102,9 +109,9 @@ def test_orchestrator_abort():
 def test_orchestrator_subsystem_action():
     orch = MissionOrchestrator()
     executed = []
-    orch.add_action(SubsystemAction(
-        MissionPhase.LIFTOFF, "engines", lambda: executed.append(True)
-    ))
+    orch.add_action(
+        SubsystemAction(MissionPhase.LIFTOFF, "engines", lambda: executed.append(True))
+    )
 
     orch.transition_to(MissionPhase.LIFTOFF)
     assert len(executed) == 1
@@ -112,10 +119,11 @@ def test_orchestrator_subsystem_action():
 
 def test_orchestrator_auto_transition():
     orch = MissionOrchestrator()
-    orch.add_transition(PhaseTransition(
-        MissionPhase.PRE_LAUNCH, MissionPhase.COUNTDOWN,
-        lambda: True, "auto_start"
-    ))
+    orch.add_transition(
+        PhaseTransition(
+            MissionPhase.PRE_LAUNCH, MissionPhase.COUNTDOWN, lambda: True, "auto_start"
+        )
+    )
 
     result = orch.check_transitions()
     assert result == MissionPhase.COUNTDOWN

@@ -4,12 +4,12 @@
   "source_sha": "3bebe10e4f6b2024c43d6d0e9cc19cd2aba434498ef205c478589db15496e7c3",
   "proof_id": "elite-spacex-mission-control-1786335149",
   "environment": {
-    "python": "/Users/kcbflux/job-app/excellence/.venv-elite/bin/python",
-    "PYTHONPATH": "/Users/kcbflux/job-app/repos/spacex-mission-control:/Users/kcbflux/job-app/repos/spacex-mission-control/src",
+    "python": "${HOME}/job-app/excellence/.venv-elite/bin/python",
+    "PYTHONPATH": "${HOME}/job-app/repos/spacex-mission-control:${HOME}/job-app/repos/spacex-mission-control/src",
     "entry": "unittest"
   },
   "tests": [
-    "/Users/kcbflux/job-app/excellence/.venv-elite/bin/python -m unittest discover -s tests -v (x2)"
+    "${HOME}/job-app/excellence/.venv-elite/bin/python -m unittest discover -s tests -v (x2)"
   ],
   "adversarial_tests": [
     "tests/test_adversarial.py"

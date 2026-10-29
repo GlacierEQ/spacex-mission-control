@@ -1,7 +1,7 @@
 {
   "schema": "glaciereq.repo-excellence-state.v1",
   "repository": "GlacierEQ/spacex-mission-control",
-  "principal_state": "PROMOTED",
+  "principal_state": "TESTED",
   "gates": {
     "IDENTITY_RESOLVED": {
       "status": "PASS",
@@ -192,5 +192,22 @@
   "proof_receipt": {
     "source_sha": "HYPER_VALIDATED_SHA256",
     "identity": "HYPER_VALIDATED_IDENTITY"
+  },
+  "evidence_token": "LOCAL_MISSION_OPS_SIMULATION_NOT_FLIGHT_COMMAND_AUTHORITY",
+  "verified_capability": "synthetic-mission-phase-orchestration",
+  "implemented_capabilities": [
+    "mission-orchestrator-callbacks",
+    "abort-behavior-state-machine",
+    "console-operator-surface",
+    "transition-gate-composition"
+  ],
+  "current": {
+    "deployed": false
+  },
+  "recovery": {
+    "identity": "APEX_IS_THE_COUNTER_TO_CANONICAL_DESTRUCTION",
+    "incident": "ESTATE_CAPABILITY_NEUTRALIZATION_2026-08-15",
+    "law": "MAXIMUM_COHERENT_ADVANCE",
+    "action": "dual-plane power routing \u2014 expand implemented surface without false SpaceX/flight claims"
   }
 }

@@ -5,8 +5,34 @@
     "synthetic-mission-phase-orchestration",
     "callback-and-abort-control-flow",
     "local-operations-state-summarization",
+    "telemetry-aggregation-lab",
+    "mission-orchestrator-callbacks",
+    "abort-behavior-state-machine",
+    "console-operator-surface",
+    "transition-gate-composition",
     "hmac-signed-expiring-command-intents",
     "scope-bound-one-use-command-authorization",
     "receipt-bearing-controlled-simulation-actions"
-  ]
+  ],
+  "evidence_token": "LOCAL_MISSION_OPS_SIMULATION_NOT_FLIGHT_COMMAND_AUTHORITY",
+  "planes": {
+    "verified": [
+      "synthetic-mission-phase-orchestration",
+      "severity-filtered-event-fanout",
+      "telemetry-aggregation-lab"
+    ],
+    "implemented": [
+      "mission-orchestrator-callbacks",
+      "abort-behavior-state-machine",
+      "console-operator-surface",
+      "transition-gate-composition"
+    ],
+    "rule": "verified claims stay honest; implemented power is not deleted to protect claims"
+  },
+  "recovery": {
+    "identity": "APEX_IS_THE_COUNTER_TO_CANONICAL_DESTRUCTION",
+    "incident": "ESTATE_CAPABILITY_NEUTRALIZATION_2026-08-15",
+    "law": "MAXIMUM_COHERENT_ADVANCE",
+    "action": "dual-plane power routing \u2014 expand implemented surface without false SpaceX/flight claims"
+  }
 }

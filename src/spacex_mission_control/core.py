@@ -73,9 +73,9 @@ class HoldReasonCompiler:
     def summary(self) -> str:
         if self.is_go:
             return "ALL SYSTEMS GO"
-        lines = [f"HOLD — {{len(self._holds)}} issue(s):"]
+        lines = [f"HOLD — {len(self._holds)} issue(s):"]
         for sys, reason in self._holds:
-            lines.append(f"  [{sys}] {{reason}}")
+            lines.append(f"  [{sys}] {reason}")
         return "\n".join(lines)
 
 
@@ -90,9 +90,9 @@ class AnomalyDetector:
     def ingest(self, frame: TelemetryFrame) -> list[str]:
         anomalies = []
         if abs(frame.acceleration_g) > self.max_g:
-            anomalies.append(f"G-load {{frame.acceleration_g:.1f}} exceeds limit {{self.max_g}}")
+            anomalies.append(f"G-load {frame.acceleration_g:.1f} exceeds limit {self.max_g}")
         if frame.velocity_ms > self.max_velocity:
-            anomalies.append(f"Velocity {{frame.velocity_ms:.0f}} m/s exceeds limit")
+            anomalies.append(f"Velocity {frame.velocity_ms:.0f} m/s exceeds limit")
         if frame.altitude_m < 0:
             anomalies.append("Negative altitude detected")
         if self._history:
@@ -101,7 +101,7 @@ class AnomalyDetector:
                 dv = abs(frame.velocity_ms - self._history[-1].velocity_ms)
                 jerk = dv / dt
                 if jerk > 500.0:
-                    anomalies.append(f"High jerk {{jerk:.0f}} m/s² detected")
+                    anomalies.append(f"High jerk {jerk:.0f} m/s² detected")
         self._history.append(frame)
         return anomalies
 

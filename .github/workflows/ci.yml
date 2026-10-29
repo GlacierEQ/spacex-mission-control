@@ -6,11 +6,31 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
-  ci:
-    uses: GlacierEQ/public-actions-runner-host/.github/workflows/reusable-quick-ci.yml@main
-    with:
-      repo_name: ${{ github.event.repository.name }}
-      language: python
-      verify_script: scripts/ci/verify.sh
-      upload_artifacts: false
+  native-verification:
+    name: Mission-control executable verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Run repository-owned full verification
+        run: bash scripts/ci/verify.sh
+
+      - name: Record checked revision
+        if: always()
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY" >> "$GITHUB_STEP_SUMMARY"
+          echo "Revision: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verification command: bash scripts/ci/verify.sh" >> "$GITHUB_STEP_SUMMARY"

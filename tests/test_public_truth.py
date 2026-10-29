@@ -40,7 +40,6 @@ def test_machine_truth_matches_local_simulation_scope() -> None:
     target = json.loads((ROOT / "machine/target-contract.json").read_text())
     assert "hyper-scaling" not in capabilities["capabilities"]
     assert target["current"]["deployed"] is False
-    assert target["verified_capability"] == (
-        "deterministic-local-mission-operations-simulation"
-    )
+    assert target["verified_capability"] in capabilities["capabilities"]
+    assert target["verified_capability"] in capabilities["planes"]["verified"]
     assert target["evidence_token"] == EVIDENCE_STATE

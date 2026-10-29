@@ -6,6 +6,8 @@
   "not_after": 1788927149.234226,
   "mac": "1ad3d5ae2491d999f9c92ea99d3d999321ed586b77794f6a7f1c0bcf733483e5",
   "issuer": "local_operator_promotion_authority",
-  "verified": true,
-  "secret_ref": "src/promotion_authority.py::LOCAL_OPERATOR_SECRET"
+  "verified": false,
+  "secret_ref": "src/promotion_authority.py::LOCAL_OPERATOR_SECRET",
+  "verification_status": "HISTORICAL_GRANT_EXPIRED_AND_PROOF_UNBOUND",
+  "verification_note": "Historical grant preserved; expiry 2026-09-09 UTC. Its stored proof_receipt_digest differs from the current proof_receipt.json byte digest. This record does not authorize promotion of the present revision."
 }
